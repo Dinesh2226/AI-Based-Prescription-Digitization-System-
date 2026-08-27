@@ -1,0 +1,7 @@
+# Training-only dependencies. Keep separate from the inference environment.
+datasets>=2.14,<3
+accelerate>=0.23,<1
+seqeval>=1.2,<2
+scikit-learn>=1.3,<2
+sentencepiece>=0.2,<1
+protobuf>=4.25,<6

@@ -1,0 +1,58 @@
+:root {
+  --color-bg: #FAF8F3;
+  --color-surface: #FFFFFF;
+  --color-primary: #2F6F6B;
+  --color-primary-dark: #1F4E4B;
+  --color-accent: #E8973B;
+  --color-success: #3E8E5A;
+  --color-danger: #C1440E;
+  --color-text: #263238;
+  --color-text-muted: #5B6B6A;
+  --color-border: #E4DFD2;
+  --radius: 14px;
+  --shadow-soft: 0 4px 16px rgba(38, 48, 40, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 18px; /* larger base size for readability */
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Atkinson Hyperlegible', 'Inter', system-ui, sans-serif;
+  color: var(--color-primary-dark);
+  margin: 0 0 0.4em;
+}
+
+button, input, select {
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+a {
+  color: var(--color-primary);
+}
+
+/* Visible focus ring everywhere, important for accessibility */
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
