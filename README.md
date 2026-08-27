@@ -1,116 +1,177 @@
-# AI-Based Web Application for Prescription Digitization and Medication Reminders in Elderly Care
+# 💊 AI-Based Prescription Digitization & Elderly Care Medication Management System
 
-Three services, run separately:
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://python.org)
+[![Node.js 18+](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org)
+[![React 18](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)](https://reactjs.org)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?logo=mongodb&logoColor=white)](https://mongodb.com)
 
-| Service      | Tech                          | Port |
-|--------------|--------------------------------|------|
-| `ai-service` | Python / Flask (OCR, NER, DDI) | 5001 |
-| `backend`    | Node / Express / MongoDB       | 5000 |
-| `frontend`   | React / Vite                   | 3000 |
+An end-to-end AI-powered web application designed to simplify medication management for elderly patients and caregivers. The system automatically digitizes handwritten or printed doctor prescriptions using Transformer-based AI models, checks for dangerous Drug-Drug Interactions (DDI), extracts structured dosages, and automatically schedules timely medication reminders.
 
-## 1. AI service
+---
+
+## 🌟 Key Features
+
+- 📸 **AI Prescription Scanner (OCR)**: Extracts handwritten and printed medication details from uploaded prescription images using Hugging Face **TrOCR** (`microsoft/trocr-base-handwritten` & `microsoft/trocr-base-printed`).
+- 🏷️ **Medical Entity Recognition (NER)**: Automatically parses drug names, strengths, dosages, frequency instructions, and doctor/patient info.
+- ⚠️ **Drug Interaction & Safety Analysis**: Checks real-time Drug-Drug Interactions (DDI) and allergy warnings against verified drug databases (RxNorm).
+- 📅 **Automated Schedule Generator**: Generates 7-day medication schedules based on prescribed frequencies (e.g., once daily, twice daily, thrice daily).
+- 🔔 **Interactive Reminder System**: Caregivers and elderly users can view upcoming doses, mark doses as taken, or snooze reminders with automatic overdue/missed dose tracking.
+- 🔒 **Secure Auth & Role Management**: JWT-backed authentication protecting user data and prescription records.
+
+---
+
+## 🏗️ System Architecture
+
+```
+                                +---------------------------+
+                                |    React / Vite Frontend  |
+                                |     (Port 3000 / UI)      |
+                                +-------------+-------------+
+                                              |
+                                       HTTP / REST API
+                                              v
+                                +-------------+-------------+
+                                |  Express / Node Backend   |
+                                |       (Port 5000)         |
+                                +------+--------------+-----+
+                                       |              |
+                          Database Ops |              | Forward Prescription
+                                       v              v
+                              +--------+-----+  +-----+---------------+
+                              |   MongoDB    |  |  Python AI Service  |
+                              |  (Database)  |  |  (Port 5001 / ML)   |
+                              +--------------+  +---------------------+
+```
+
+---
+
+## 🛠️ Tech Stack
+
+| Component | Technology / Framework | Description |
+|---|---|---|
+| **Frontend** | React 18, Vite, React Router | Modern, responsive user interface for prescription management & reminders |
+| **Backend API** | Node.js, Express.js, Mongoose | RESTful API server handling authentication, scheduling, & database operations |
+| **Database** | MongoDB | Document database for users, prescriptions, medications, and reminder logs |
+| **AI / ML Service** | Python, Flask, PyTorch, Hugging Face Transformers | Computer Vision & NLP pipeline for OCR, NER entity parsing, and interaction checking |
+
+---
+
+## 🚀 Quick Start Guide
+
+The application consists of 3 microservices that run concurrently:
+
+### Prerequisites
+- **Node.js**: v18 or higher
+- **Python**: v3.10 or higher
+- **MongoDB**: Installed locally or a free [MongoDB Atlas](https://www.mongodb.com/atlas) connection URI
+
+---
+
+### 1. AI Service (Python / Flask)
 
 ```bash
+# Navigate to AI service folder
 cd ai-service
-python3 -m venv venv
-source venv/bin/activate        # venv\Scripts\activate on Windows
+
+# Create and activate virtual environment
+python -m venv venv
+
+# On Windows:
+venv\Scripts\activate
+# On Linux/macOS:
+# source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Run the Flask server (runs on http://localhost:5001)
 python app.py
 ```
+> **Note**: On first launch, the service will automatically download the TrOCR transformer models (~1.3GB) from Hugging Face.
 
-First run downloads the TrOCR model (~1.3GB) from Hugging Face — this can take a
-few minutes and needs internet access. It listens on `http://localhost:5001`.
+---
 
-## 2. Backend
-
-Requires a running MongoDB instance (local `mongod`, or a free
-[MongoDB Atlas](https://www.mongodb.com/atlas) cluster).
+### 2. Backend Server (Node.js / Express)
 
 ```bash
+# Navigate to backend folder
 cd backend
-cp .env.example .env    # then edit MONGODB_URI / JWT_SECRET if needed
+
+# Create environment configuration file
+cp .env.example .env
+
+# Edit .env to set your MongoDB URI and JWT Secret
+# MONGODB_URI=mongodb://127.0.0.1:27017/medication-tracker
+# JWT_SECRET=your_secure_random_jwt_secret
+
+# Install dependencies
 npm install
-npm run dev              # nodemon, or `npm start` for plain node
-```
 
-Check it's healthy: `curl http://localhost:5000/health` should return
-`{"status":"healthy","mongoConnected":true,...}`.
-
-## 3. Frontend
-
-```bash
-cd frontend
-npm install
+# Start development server (runs on http://localhost:5000)
 npm run dev
 ```
 
-Open `http://localhost:3000`, register an account, then:
+---
 
-1. Go to **Prescriptions** → upload a photo of a prescription. The backend
-   forwards it to the AI service for OCR + drug-name/dosage extraction +
-   interaction checking.
-2. Review the extracted medications, then **Confirm** to turn them into
-   tracked `Medication` records and generate the next 7 days of reminders.
-3. **Dashboard** shows the next dose due; **Reminders** lets you mark doses
-   taken or snooze them; **Medications** lists everything you're tracking
-   and lets you add medications manually.
+### 3. Frontend Client (React / Vite)
 
-## What was fixed vs. the original skeleton
+```bash
+# Navigate to frontend folder
+cd frontend
 
-The original zip did not run end-to-end:
-- `backend/sever.js` was misnamed (should be `server.js`) so `npm start` failed immediately.
-- All backend route files (`medications.js`, `prescription.js`, `reminders.js`) and
-  all Mongoose models (`User.js`, `Medication.js`, `Prescription.js`, `Reminder.js`)
-  were empty (0 bytes).
-- `server.js` imported route files/paths that didn't exist (`./src/routes/auth`,
-  `./src/routes/prescriptions`, `./src/routes/users`, vs. the actual
-  `./src/models/routes/...` files).
-- The frontend `App.jsx` imported six files that were never created:
-  `hooks/useAuth`, `pages/Dashboard`, `pages/Medications`, `pages/Reminders`,
-  `pages/Login`, `pages/Register`, `components/ProtectedRoute`, plus the
-  stylesheets.
-- `database/init.sql` was empty and unused (the app uses MongoDB, not SQL).
-- `README.md` was actually an empty directory, not a file.
+# Install dependencies
+npm install
 
-All of the above now exist with working implementations: JWT auth, prescription
-upload → AI processing → confirm-into-medications → auto-generated reminders,
-a reminder dashboard with mark-taken/snooze, and a cron job that marks
-overdue reminders as missed. The AI service itself (TrOCR OCR, regex-based
-NER, rule-based + RxNorm drug-interaction checking) was already implemented
-in the original zip and is unchanged.
+# Start Vite dev server (runs on http://localhost:3000)
+npm run dev
+```
 
-## Round 2 fixes (from code review)
+Open **`http://localhost:3000`** in your browser to start using the application!
 
-A follow-up review caught real bugs in the first pass that were fixed here:
-- **Hard-coded JWT fallback secret** — `auth.js`/`middleware/auth.js` used
-  to fall back to `'dev-secret-change-me'` if `JWT_SECRET` was unset, which
-  would let anyone with this repo mint valid tokens against a misconfigured
-  deployment. It's now a shared `src/config.js` that throws at startup if
-  `JWT_SECRET` is missing, so the app fails loudly instead of silently.
-- **Snoozed reminders could disappear forever** — `/snooze` only set
-  `snoozeUntil` while `/upcoming` and the missed-reminder cron job kept
-  filtering on the original `scheduledTime`. Once that original time passed,
-  the reminder fell out of both queries and never became due or missed
-  again. Snoozing now updates `scheduledTime` itself, and the cron job
-  checks `snoozed` reminders too.
-- **Prescriptions page never reloaded saved data and misread API responses**
-  — `uploadPrescription()`/`confirmPrescription()` return the full Axios
-  response, but the page was treating that response as the prescription
-  object itself (`prescription._id` was actually `undefined`). It also
-  never called `getPrescriptions()`, so uploads vanished on refresh. Fixed
-  both, and re-render from the server's response after confirming/saving times.
-- **Editing a medication's times directly (not via a prescription) silently
-  killed future reminders** — the route deleted pending reminders but never
-  regenerated them. Reminder generation is now a shared
-  `utils/reminderScheduler.js` used by both flows.
-- **Midnight doses (00:00, four-times-daily) silently rescheduled to 8am**
-  — `hours || 8` treats `0` as falsy. Fixed with an explicit `NaN` check.
+---
 
-## Known gaps vs. the project report
+## 🔑 Environment Variables
 
-The report also describes machine-learning-based DDI detection (the current
-DDI service is rule-based + RxNorm API, not a trained ML classifier),
-voice-prompt and push/SMS notifications (Twilio env vars are wired in but
-not yet called anywhere), and formal OCR/NER accuracy evaluation and
-user-acceptability testing (not yet run). Worth flagging to your guide if
-the report claims these as already complete.
+### Backend (`backend/.env`)
+
+| Variable | Default Value | Description |
+|---|---|---|
+| `PORT` | `5000` | Port for the backend Express server |
+| `MONGODB_URI` | `mongodb://127.0.0.1:27017/medication-tracker` | Connection string for MongoDB database |
+| `JWT_SECRET` | Required | Secret key used for signing JWT authentication tokens |
+| `AI_SERVICE_URL` | `http://127.0.0.1:5001` | URL of the Python AI Flask service |
+
+---
+
+## 📁 Directory Structure
+
+```
+AI-Based-Prescription-Digitization-System/
+├── ai-service/             # Python ML Service (TrOCR, NER, Interaction Checkers)
+│   ├── services/           # OCR, NER, and DDI processing modules
+│   ├── training/           # Model fine-tuning scripts and datasets
+│   ├── app.py              # Flask server entry point
+│   └── requirements.txt    # Python dependencies
+├── backend/                # Express REST API Server
+│   ├── src/
+│   │   ├── models/         # Mongoose schemas (User, Prescription, Medication, Reminder)
+│   │   ├── routes/         # Express API endpoints
+│   │   ├── middleware/     # Auth and validation middleware
+│   │   └── utils/          # Scheduler cron jobs and AI service helpers
+│   ├── server.js           # Express app setup & server listener
+│   └── package.json
+└── frontend/               # React + Vite Web Dashboard
+    ├── src/
+    │   ├── components/     # UI components (Navbar, ProtectedRoute)
+    │   ├── pages/          # Dashboard, Prescriptions, Medications, Reminders, Login/Register
+    │   └── services/       # Axios API client setup
+    ├── vite.config.js
+    └── package.json
+```
+
+---
+
+## 📝 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
